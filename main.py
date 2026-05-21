@@ -353,3 +353,74 @@ def session_quote_10(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
     return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
 
 def route_heuristic_11(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 28) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_11(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_11(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
+    fee = deposit_wei * fee_bp // 10_000
+    return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
+
+def route_heuristic_12(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 29) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_12(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_12(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
+    fee = deposit_wei * fee_bp // 10_000
+    return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
+
+def route_heuristic_13(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 30) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_13(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_13(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
+    fee = deposit_wei * fee_bp // 10_000
+    return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
+
+def route_heuristic_14(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 31) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_14(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_14(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
+    fee = deposit_wei * fee_bp // 10_000
+    return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
+
+def route_heuristic_15(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 32) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_15(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_15(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
