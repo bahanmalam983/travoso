@@ -69,3 +69,74 @@ class GuideCard:
 class SessionTicket:
     session_id: int
     card_id: str
+    guide: str
+    deposit_wei: int
+    settled: bool = False
+    cancelled: bool = False
+
+class TravelLedger:
+    """In-memory mirror of VivaLaTravel advisories for offline rehearsal."""
+
+    def __init__(self) -> None:
+        self.advisories: Dict[str, AdvisoryNote] = {}
+        self.routes: Dict[int, RoutePlan] = {}
+        self.guides: Dict[str, GuideCard] = {}
+        self.sessions: Dict[int, SessionTicket] = {}
+        self._next_sketch = 1
+        self._next_session = 1
+        self.season = 1
+        self.treasury_wei = 0
+
+    def list_advisory(self, card_id: str, climate: int, headline: str) -> AdvisoryNote:
+        note = AdvisoryNote(card_id=card_id, climate=climate, headline=headline)
+        self.advisories[card_id] = note
+        return note
+
+    def mint_route(self, stops: Sequence[str], day_span: int) -> RoutePlan:
+        rid = self._next_sketch
+        self._next_sketch += 1
+        plan = RoutePlan(sketch_id=rid, stops=list(stops), day_span=day_span)
+        self.routes[rid] = plan
+        return plan
+
+    def register_guide(self, wallet: str, bio: str) -> GuideCard:
+        g = GuideCard(wallet=wallet, bio=bio)
+        self.guides[wallet] = g
+        return g
+
+    def open_session(self, card_id: str, guide: str, deposit_wei: int) -> SessionTicket:
+        sid = self._next_session
+        self._next_session += 1
+        t = SessionTicket(session_id=sid, card_id=card_id, guide=guide, deposit_wei=deposit_wei)
+        self.sessions[sid] = t
+        return t
+
+    def settle_session(self, session_id: int, fee_bp: int = 73) -> Tuple[int, int]:
+        t = self.sessions[session_id]
+        fee = t.deposit_wei * fee_bp // 10_000
+        payout = t.deposit_wei - fee
+        t.settled = True
+        self.treasury_wei += fee
+        g = self.guides.get(t.guide)
+        if g:
+            g.sessions += 1
+        return payout, fee
+
+    def score_blend(self, card_id: str) -> float:
+        n = self.advisories.get(card_id)
+        if not n or n.review_count == 0:
+            return 0.0
+        return n.rating_avg
+
+    def export_snapshot(self) -> Dict[str, Any]:
+        return {
+            "season": self.season,
+            "treasury_wei": self.treasury_wei,
+            "advisories": {k: asdict(v) for k, v in self.advisories.items()},
+            "routes": {str(k): asdict(v) for k, v in self.routes.items()},
+            "guides": {k: asdict(v) for k, v in self.guides.items()},
+            "sessions": {str(k): asdict(v) for k, v in self.sessions.items()},
+        }
+
+def save_path() -> Path:
+    base = Path(os.environ.get("TRAVOSO_HOME", Path.home()))
