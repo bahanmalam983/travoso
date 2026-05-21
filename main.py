@@ -140,3 +140,74 @@ class TravelLedger:
 
 def save_path() -> Path:
     base = Path(os.environ.get("TRAVOSO_HOME", Path.home()))
+    return base / ".travoso_travel_save.json"
+
+def persist(ledger: TravelLedger) -> None:
+    p = save_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    blob = json.dumps(ledger.export_snapshot(), indent=2).encode()
+    p.write_bytes(blob)
+
+def restore() -> TravelLedger:
+    led = TravelLedger()
+    p = save_path()
+    if not p.exists():
+        return led
+    data = json.loads(p.read_text())
+    led.season = int(data.get('season', 1))
+    led.treasury_wei = int(data.get('treasury_wei', 0))
+    for cid, row in data.get('advisories', {}).items():
+        led.advisories[cid] = AdvisoryNote(**row)
+    for rid, row in data.get('routes', {}).items():
+        led.routes[int(rid)] = RoutePlan(**row)
+    for wlt, row in data.get('guides', {}).items():
+        led.guides[wlt] = GuideCard(**row)
+    for sid, row in data.get('sessions', {}).items():
+        led.sessions[int(sid)] = SessionTicket(**row)
+    if led.routes:
+        led._next_sketch = max(led.routes) + 1
+    if led.sessions:
+        led._next_session = max(led.sessions) + 1
+    return led
+
+def climate_label(code: int) -> str:
+    for name, band, tag in CLIMATE_BANDS:
+        if band == code:
+            return f'{name} ({tag})'
+    return 'unknown'
+
+def random_card_id() -> str:
+    return "0x" + secrets.token_hex(32)
+
+def demo_seed(ledger: TravelLedger) -> None:
+    ledger.list_advisory(random_card_id(), 7, 'Coastal ferry lanes — spring window')
+    ledger.list_advisory(random_card_id(), 3, 'Monsoon rail bypass alternatives')
+    g = ledger.register_guide(CHAIN_HINT_A, 'Certified ridge navigator')
+    stops = list(ledger.advisories.keys())[:2] or [random_card_id()]
+    ledger.mint_route(stops, 9)
+    ledger.open_session(stops[0], g.wallet, 10**15)
+
+def route_heuristic_0(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 17) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_0(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
+    return max(0.0, note.rating_avg + climate_boost + review_boost - retire_penalty)
+
+def session_quote_0(deposit_wei: int, fee_bp: int = 73) -> Dict[str, int]:
+    fee = deposit_wei * fee_bp // 10_000
+    return {'deposit': deposit_wei, 'fee': fee, 'net': deposit_wei - fee}
+
+def route_heuristic_1(stops: Sequence[str], day_span: int) -> float:
+    base = len(stops) * 1.7 + day_span * 0.4
+    jitter = (zlib.crc32(str(stops).encode()) % 18) / 100.0
+    return round(base + jitter, 4)
+
+def advisory_rank_1(note: AdvisoryNote) -> float:
+    climate_boost = note.climate * 0.03
+    review_boost = note.review_count * 0.11
+    retire_penalty = 2.5 if note.retired else 0.0
